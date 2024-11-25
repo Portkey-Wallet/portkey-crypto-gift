@@ -1,3 +1,7 @@
+import { CRYPTO_GIFT_APP_NAME_IN_TG } from '@/constants/storage';
+import { OperationType } from '@/types/cryptoGift';
+import * as uuid from 'uuid';
+
 export const sleep = (time: number) => {
   return new Promise((resolve) => {
     const timer = setTimeout(() => {
@@ -34,3 +38,19 @@ export const formatAelfAddress = (address = ''): string => {
   const suffix = '_AELF';
   return `${pre}${address}${suffix}`;
 };
+
+export const isInPortkeyTgBot = () => {
+  return window.location.hostname.includes('tgbot');
+};
+
+export const hasConnectedInTg = (): boolean => {
+  return !!localStorage.getItem(CRYPTO_GIFT_APP_NAME_IN_TG);
+};
+
+export const getOperationType = (operationTypeStr: string) => {
+  return operationTypeStr.toLocaleLowerCase().includes('recover')
+    ? OperationType.SocialRecovery
+    : OperationType.Register;
+};
+
+export const randomId = () => uuid.v4().replace(/-/g, '');

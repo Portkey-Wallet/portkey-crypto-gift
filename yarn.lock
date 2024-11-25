@@ -24,62 +24,62 @@
   dependencies:
     just-compare "^2.3.0"
 
-"@aelf-web-login/wallet-adapter-base@0.1.5", "@aelf-web-login/wallet-adapter-base@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-base/-/wallet-adapter-base-0.1.5.tgz#65f3f50b7e15f2959218f3274339ff63f32b7a1e"
-  integrity sha512-+LfhOtMe3lE6YnyTUkAgP7ZBVwaYtxwHUCUFZevCDmoZQ7sON9YNfz+ZvaLpccUGOPiyVKG4E9A+2Y/GSgwSKw==
+"@aelf-web-login/wallet-adapter-base@0.1.10", "@aelf-web-login/wallet-adapter-base@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-base/-/wallet-adapter-base-0.1.10.tgz#0ea0209108afd636f38c74d769a579d7b70671bc"
+  integrity sha512-l9BMsyBsjCd+o4HvqQBdEnx452d3GdQbCaXg8Sq2SumWvg1plG372g5W8ss0ipaWweqX2YxTR/eK8vcJTUFQ6Q==
   dependencies:
     eventemitter3 "^5.0.1"
 
-"@aelf-web-login/wallet-adapter-bridge@0.1.5", "@aelf-web-login/wallet-adapter-bridge@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-bridge/-/wallet-adapter-bridge-0.1.5.tgz#fb9867bd1f1dd3e24be0a13a4e51cb9a6fcef3fc"
-  integrity sha512-kNWevRK+Q3p153knLLKARt/T3w3LXXJ5cURNHlcY641m3GIn3lAeAk7ZgBkGHwB0DAJaIXb9hVGI/1LGW9Kqyw==
+"@aelf-web-login/wallet-adapter-bridge@0.1.10", "@aelf-web-login/wallet-adapter-bridge@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-bridge/-/wallet-adapter-bridge-0.1.10.tgz#aeebb11bd58b609769d8dd7f1ce88223d50908cc"
+  integrity sha512-/ZXnRAzi07CRuakrNZl0V85YUptPzKc0ddguIlfBQTqi0++ISNikSgcjhWEbMGSthN3eAzeAxkqCVQVCZVvoPw==
   dependencies:
-    "@aelf-web-login/wallet-adapter-base" "0.1.5"
+    "@aelf-web-login/wallet-adapter-base" "0.1.10"
     "@portkey/services" "2.7.2"
     "@reduxjs/toolkit" "^2.2.3"
     react "^18.0.0"
     react-dom "^18.0.0"
 
-"@aelf-web-login/wallet-adapter-night-elf@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-night-elf/-/wallet-adapter-night-elf-0.1.5.tgz#78b7f2704ec2eac88d702e02418399e71c75310b"
-  integrity sha512-uz1eVtzTcS9ADRNOsZg/sNdAIP5F8oGvHPlmWrKvd/K5NOfjn7AaIwADAnvJ//JRbF2hMX8cZmB4bM4ozomS9g==
+"@aelf-web-login/wallet-adapter-night-elf@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-night-elf/-/wallet-adapter-night-elf-0.1.10.tgz#d2d59268973147e2291a92a571b157370d962e18"
+  integrity sha512-Rsph6sLtvnQfKpteabf/0M7lsRrQv5/OU6Y6AY5AWFcfJp6X1kfTkXzICVwIKZxcWiJuGxTRquz+BgGyrQYjWQ==
   dependencies:
-    "@aelf-web-login/wallet-adapter-base" "0.1.5"
+    "@aelf-web-login/wallet-adapter-base" "0.1.10"
     "@portkey/contracts" "^2.6.2"
     aelf-bridge "^0.0.11-alpha.4"
     bn.js "^5.2.1"
 
-"@aelf-web-login/wallet-adapter-portkey-aa@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-portkey-aa/-/wallet-adapter-portkey-aa-0.1.5.tgz#83f303b477ec697d64ea1f86f837ca3fe153ec5c"
-  integrity sha512-3IHnRuHmUFHcsM0W9cbsadh00obJ7auhEYZybJBIarhSV9rEGFkqxEKqB1LZaXG3akY5kFTxXrkNtu0pBjq0Kg==
+"@aelf-web-login/wallet-adapter-portkey-aa@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-portkey-aa/-/wallet-adapter-portkey-aa-0.1.10.tgz#98c29355fbfcd5cf3d7869be992346771e5b142f"
+  integrity sha512-P0bKSwwgBkYPbQXnmc0L22ZFrxJrAxeO+/6DJSZANsUD5QaNdcrjfeM2xN42EPUvMgMPhjmIwvlW1jPgknLt3w==
   dependencies:
-    "@aelf-web-login/wallet-adapter-base" "0.1.5"
+    "@aelf-web-login/wallet-adapter-base" "0.1.10"
     "@portkey/contracts" "^2.6.2"
     "@portkey/utils" "^2.4.5"
 
-"@aelf-web-login/wallet-adapter-portkey-discover@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-portkey-discover/-/wallet-adapter-portkey-discover-0.1.5.tgz#41ab6cb89b4efd6a0ce83568ed8f5fae6efb7a93"
-  integrity sha512-RG7+UpLg9kEOR7M6Bs7K1Woo5K+IyEw0LmBneedyyJgMFgOtBS2cpIdXZbrBw6LMSgnUUvTEgZg7aa8IgGyc8g==
+"@aelf-web-login/wallet-adapter-portkey-discover@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-portkey-discover/-/wallet-adapter-portkey-discover-0.1.10.tgz#2036ab291fd70abc7776a7299556c5d77dfb0027"
+  integrity sha512-xe72QfHi/ErGUWpVkckRchyA+saz7GmekgRWjsl1TVDyB7Xotw5hCRiQhuZeGRZorUl5nGWyssWklcgvQws2yg==
   dependencies:
-    "@aelf-web-login/wallet-adapter-base" "0.1.5"
+    "@aelf-web-login/wallet-adapter-base" "0.1.10"
     "@portkey/contracts" "^2.6.2"
     "@portkey/detect-provider" "^2.2.0"
     "@portkey/provider-types" "^2.2.0"
     "@portkey/utils" "^2.4.5"
     bn.js "^5.2.1"
 
-"@aelf-web-login/wallet-adapter-react@^0.1.5":
-  version "0.1.5"
-  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-react/-/wallet-adapter-react-0.1.5.tgz#ad438e93e62e0d3b45af84f28271a9f444732639"
-  integrity sha512-ieQKcdhp5lErzxwj5RDobcq8vjU9QY9rrfBa6fRky34hgTRvrLD5t38XTne+oe2MS1P9uY/Fky19LtPsmewXFw==
+"@aelf-web-login/wallet-adapter-react@^0.1.10":
+  version "0.1.10"
+  resolved "https://registry.yarnpkg.com/@aelf-web-login/wallet-adapter-react/-/wallet-adapter-react-0.1.10.tgz#790af5faa6227cbaea919a0e1edde0c101b25437"
+  integrity sha512-tw2ilUgN6p/6z8Xfv68LPu4FKiHU6QILrst2q6VJ5Gp5tdyHSD5fjFuekCVQ4ts0VoLKyHDzaIynb/WiOPsSFg==
   dependencies:
-    "@aelf-web-login/wallet-adapter-base" "0.1.5"
-    "@aelf-web-login/wallet-adapter-bridge" "0.1.5"
+    "@aelf-web-login/wallet-adapter-base" "0.1.10"
+    "@aelf-web-login/wallet-adapter-bridge" "0.1.10"
     react "^18.0.0"
     react-dom "^18.0.0"
     vconsole "^3.15.1"
@@ -1083,6 +1083,11 @@
   version "0.7.39"
   resolved "https://registry.yarnpkg.com/@types/ua-parser-js/-/ua-parser-js-0.7.39.tgz#832c58e460c9435e4e34bb866e85e9146e12cdbb"
   integrity sha512-P/oDfpofrdtF5xw433SPALpdSchtJmY7nsJItf8h3KXqOslkbySh8zq4dSWXH2oTjRvJ5PczVEoCZPow6GicLg==
+
+"@types/uuid@^10.0.0":
+  version "10.0.0"
+  resolved "https://registry.yarnpkg.com/@types/uuid/-/uuid-10.0.0.tgz#e9c07fe50da0f53dc24970cca94d619ff03f6f6d"
+  integrity sha512-7gqG38EyHgyP1S+7+xomFtL+ZNHcKv6DwNaCZmJmo1vgMugyF3TCnXVg4t1uk89mLNwnLtnY3TpOpCOyp1/xHQ==
 
 "@typescript-eslint/parser@^5.4.2 || ^6.0.0 || 7.0.0 - 7.2.0":
   version "7.2.0"

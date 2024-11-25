@@ -1,7 +1,7 @@
 'use client';
 import clsx from 'clsx';
 import { useState, useCallback, useRef, useMemo, useEffect, useLayoutEffect } from 'react';
-import { ISignIn, singleMessage, did, ConfigProvider, TelegramPlatform } from '@portkey/did-ui-react';
+import { singleMessage, did, TelegramPlatform } from '@portkey/did-ui-react';
 
 import { useCopyToClipboard } from 'react-use';
 import BaseImage from '@/components/BaseImage';
@@ -10,10 +10,7 @@ import bgLine1 from '/public/cryptoGift/images/cryptoGift/bgLine1.svg';
 import bgLine2 from '/public/cryptoGift/images/cryptoGift/bgLine2.svg';
 import bgLine3 from '/public/cryptoGift/images/cryptoGift/bgLine3.svg';
 import bgPortkeyLogo from '/public/cryptoGift/images/cryptoGift/bgPortkeyLogo.svg';
-import boxCannotClaimed from '/public/cryptoGift/images/cryptoGift/boxCannotClaimed.png';
-import boxClosed from '/public/cryptoGift/images/cryptoGift/boxClosed.png';
-import boxEmpty from '/public/cryptoGift/images/cryptoGift/boxEmpty.png';
-import boxOpened from '/public/cryptoGift/images/cryptoGift/boxOpened.png';
+
 import portkeyLogo from '/public/cryptoGift/images/cryptoGift/portkeyLogo.svg';
 import logoutIcon from '/public/cryptoGift/images/cryptoGift/logout.svg';
 import cryptoSuccess from '/public/cryptoGift/images/cryptoGift/success.svg';
@@ -23,42 +20,42 @@ import alarm from '/public/cryptoGift/images/cryptoGift/alarm.svg';
 import styles from './styles.module.scss';
 import './global.scss';
 
-import { privacyPolicy, termsOfService } from '@/constants/pageData';
 import '@portkey/did-ui-react/dist/assets/index.css';
 import { useRouter, useSearchParams } from 'next/navigation';
-import { PORTKEY_API, portkeyGet, portkeyPost } from '@/utils/axios/index';
+import { getAAConnectToken, PORTKEY_API, portkeyGet, portkeyPost } from '@/utils/axios/index';
 import { ApiHost, BackEndNetWorkMap, CurrentNetWork, DomainHost, LoginTypes } from '@/constants/network';
+
 import OpenInBrowser from '@/components/OpenInBrowser';
-import { BackEndNetworkType } from '@/types/network';
 import { Dropdown, MenuProps, Image, Avatar, message } from 'antd';
 import BreakWord from '@/components/BreakWord';
-import { useFetchAndStoreCaHolderInfo } from '@/hooks/giftWallet';
 import { getItem, removeItem, setItem } from '@/utils/storage';
 import { useEnvironment } from '@/hooks/environment';
 import { useDownload } from '@/hooks/download';
-import { AssetsType, CryptoGiftPhase, RedPackageGrabStatus, TCryptoDetail } from '@/types/cryptoGift';
+import {
+  AssetsType,
+  ClientType,
+  CryptoGiftPhase,
+  OperationType,
+  RedPackageGrabStatus,
+  TCryptoDetail,
+} from '@/types/cryptoGift';
 import { CRYPTO_GIFT_PROJECT_CODE } from '@/constants/project';
 import { formatSecond2CountDownTime } from '@/utils/time';
 import { useLoading } from '@/hooks/global';
 import { divDecimalsStr } from '@/utils/converter';
 import CommonButton from '@/components/CommonButton';
-import { sleep } from '@/utils';
+import { getOperationType, hasConnectedInTg, sleep } from '@/utils';
 import { useDebounceCallback, useEffectOnce, useLatestRef } from '@/hooks/commonHooks';
 import googleAnalytics from '@/utils/googleAnalytics';
 import { useCryptoDetailTimer } from '@/hooks/useCryptoDetailTimer';
 import useAccount from '@/hooks/useAccount';
-import { openWithBlank } from '@/utils/router';
+import { useLocalRandomDeviceId } from './hooks';
+import VConsoleWrap from '@/components/VConsoleWrap';
 
-ConfigProvider.setGlobalConfig({
-  graphQLUrl: '/graphql',
-  serviceUrl: ApiHost,
-  requestDefaults: {
-    baseURL: ApiHost,
-  },
-  loginConfig: {
-    loginMethodsOrder: LoginTypes,
-  },
-});
+const boxCannotClaimed = '/cryptoGift/cryptoGift/images/cryptoGift/boxCannotClaimed.png';
+const boxClosed = '/cryptoGift/cryptoGift/images/cryptoGift/boxClosed.png';
+const boxEmpty = '/cryptoGift/cryptoGift/images/cryptoGift/boxEmpty.png';
+const boxOpened = '/cryptoGift/cryptoGift/images/cryptoGift/boxOpened.png';
 
 interface ICryptoGiftProps {
   cryptoGiftId: string;
@@ -67,12 +64,12 @@ interface ICryptoGiftProps {
 const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
   const isFirstRender = useRef(true);
   const timerRef = useRef<NodeJS.Timeout>();
+  const randomDeviceId = useLocalRandomDeviceId();
 
-  const { isLogin, login, logout, walletInfo, isLocking } = useAccount();
+  const { isLogin, login, logout, walletInfo, isLocking, isConnected } = useAccount();
   const walletInfoRef = useRef(walletInfo);
   const router = useRouter();
 
-  const { caHolderInfo, setCaHolderInfo, fetchAndStoreCaHolderInfo } = useFetchAndStoreCaHolderInfo();
   const { isPortkeyApp, isWeChat, isMobile } = useEnvironment();
   const { onJumpToPortkeyWeb, onJumpToStore } = useDownload();
   const [isShowMask, setIsShowMask] = useState(false);
@@ -80,8 +77,6 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
   const [initializing, setInitializing] = useState(true);
 
   const [, copyToClipboard] = useCopyToClipboard();
-  const searchParams = useSearchParams();
-  const networkType = searchParams?.get('networkType') || '';
   const [cryptoDetail, setCryptoGiftDetail] = useState<TCryptoDetail>();
   const { claimAgainCountdownSecond, expiredTime, rootTime } = useCryptoDetailTimer();
 
@@ -98,7 +93,7 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
         init && setInitializing(true);
         const path = isLogin ? PORTKEY_API.GET.LOGIN_CRYPTO_GIFT_DETAIL : PORTKEY_API.GET.CRYPTO_GIFT_DETAIL;
 
-        const params: { id: string; caHash?: string } = { id: cryptoGiftId };
+        const params: { id: string; caHash?: string; random?: string } = { id: cryptoGiftId, random: randomDeviceId };
         if (walletInfoRef?.current?.extraInfo?.portkeyInfo.caInfo.caHash)
           params.caHash = walletInfoRef?.current?.extraInfo?.portkeyInfo.caInfo.caHash;
         if (caHash) params.caHash = caHash;
@@ -109,6 +104,11 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
           return onRefreshCryptoGiftDetail(false, caHash, true);
         } else {
           setBtnLoading(false);
+        }
+
+        // auto sign up
+        if (result.cryptoGiftPhase === CryptoGiftPhase.GrabbedQuota) {
+          onSignUp();
         }
 
         if (result?.remainingWaitingSeconds || result?.remainingExpirationSeconds)
@@ -124,7 +124,7 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
         init && setInitializing(false);
       }
     },
-    [caHolderInfo?.caHash, cryptoGiftId],
+    [cryptoGiftId, isLogin, rootTime, randomDeviceId],
   );
 
   const latestOnRefreshCryptoGiftDetail = useLatestRef(onRefreshCryptoGiftDetail);
@@ -137,21 +137,6 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
     if (isLocking) login();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
-
-  useEffect(() => {
-    const nodeInfo = BackEndNetWorkMap[networkType as BackEndNetworkType] || CurrentNetWork;
-
-    ConfigProvider.setGlobalConfig({
-      graphQLUrl: `${networkType && nodeInfo ? `${window.location.origin}/${networkType}/graphql` : '/graphql'}`,
-      serviceUrl: nodeInfo?.domain || nodeInfo?.apiUrl || DomainHost,
-      requestDefaults: {
-        baseURL: networkType && nodeInfo ? `${window.location.origin}/${networkType}` : '',
-      },
-      loginConfig: {
-        loginMethodsOrder: nodeInfo.loginType || LoginTypes,
-      },
-    });
-  }, [networkType]);
 
   useEffect(() => {
     if (isWeChat) return setIsShowMask(true);
@@ -167,9 +152,8 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
   }, [isPortkeyApp, isWeChat]);
 
   const init = useCallback(async () => {
-    await fetchAndStoreCaHolderInfo();
     latestOnRefreshCryptoGiftDetail.current(true);
-  }, [fetchAndStoreCaHolderInfo, latestOnRefreshCryptoGiftDetail]);
+  }, [latestOnRefreshCryptoGiftDetail]);
 
   useLayoutEffect(() => {
     if (!initializing) return;
@@ -177,19 +161,20 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
 
     init();
     isFirstRender.current = false;
-  }, [fetchAndStoreCaHolderInfo, init, initializing, latestOnRefreshCryptoGiftDetail, onRefreshCryptoGiftDetail]);
+  }, [init, initializing, latestOnRefreshCryptoGiftDetail, onRefreshCryptoGiftDetail]);
 
   useLayoutEffect(() => {
     const idCode = getItem(cryptoGiftId);
+    const referralInfo = {
+      referralCode: `${cryptoGiftId}#${idCode}`,
+      projectCode: CRYPTO_GIFT_PROJECT_CODE,
+      random: randomDeviceId,
+    };
 
     did.setConfig({
-      referralInfo: {
-        referralCode: `${cryptoGiftId}#${idCode}`,
-        projectCode: CRYPTO_GIFT_PROJECT_CODE,
-      },
+      referralInfo,
     });
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [cryptoGiftId, randomDeviceId]);
 
   const onViewDetails = useCallback(() => {
     if (TelegramPlatform.isTelegramPlatform()) {
@@ -199,10 +184,29 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
     }
   }, [onJumpToStore, router]);
 
+  const reportAccount = useCallback(async (walletInfo?: any) => {
+    await getAAConnectToken(walletInfo || walletInfoRef?.current?.extraInfo?.portkeyInfo);
+    const path = PORTKEY_API.POST.REPORT_ACCOUNT;
+    const params: {
+      clientType: ClientType;
+      projectCode: string;
+      operationType: OperationType;
+      caHash?: string;
+    } = {
+      clientType: TelegramPlatform.isTelegramPlatform() ? ClientType.TgBot : ClientType.H5,
+      projectCode: CRYPTO_GIFT_PROJECT_CODE,
+      operationType: getOperationType(walletInfoRef?.current?.extraInfo?.portkeyInfo?.createType),
+      caHash: walletInfoRef?.current?.extraInfo?.portkeyInfo?.caInfo?.caHash,
+    };
+    portkeyPost(path, params);
+  }, []);
+
   const tgLoggedAccountGetCryptoDetail = useCallback(async () => {
     setBtnLoading(true);
     timerRef.current = setInterval(() => {
       if (!walletInfoRef?.current?.extraInfo?.portkeyInfo?.caInfo?.caHash) return;
+      // login
+      reportAccount(walletInfoRef?.current);
       latestOnRefreshCryptoGiftDetail.current(
         false,
         walletInfoRef?.current?.extraInfo?.portkeyInfo?.caInfo?.caHash,
@@ -211,24 +215,29 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
       clearInterval(timerRef.current);
     }, 3000);
     return () => timerRef.current && clearInterval(timerRef.current);
-  }, [latestOnRefreshCryptoGiftDetail]);
+  }, [latestOnRefreshCryptoGiftDetail, reportAccount]);
 
   useEffect(() => () => timerRef.current && clearInterval(timerRef.current), []);
 
   const onSignUp = useCallback(async () => {
     try {
       const walletInfo = await login();
+      if (!walletInfo) return;
       // TODO: change type
-      googleAnalytics.portkeyLoginEvent(walletInfo || walletInfoRef?.current?.extraInfo?.portkeyInfo?.createType);
+      googleAnalytics.portkeyLoginEvent(
+        walletInfo?.extraInfo?.portkeyInfo?.createType || walletInfoRef?.current?.extraInfo?.portkeyInfo?.createType,
+      );
 
       await sleep(300);
 
       if (TelegramPlatform.isTelegramPlatform()) {
         tgLoggedAccountGetCryptoDetail();
       } else {
+        reportAccount(walletInfo);
         latestOnRefreshCryptoGiftDetail.current(
           false,
-          walletInfo || walletInfoRef?.current?.extraInfo?.portkeyInfo.caInfo.caHash,
+          walletInfo?.extraInfo?.portkeyInfo?.caInfo?.caHash ||
+            walletInfoRef?.current?.extraInfo?.portkeyInfo?.caInfo?.caHash,
           true,
         );
       }
@@ -236,7 +245,7 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
       console.log('error', error);
       setBtnLoading(false);
     }
-  }, [latestOnRefreshCryptoGiftDetail, login, tgLoggedAccountGetCryptoDetail]);
+  }, [latestOnRefreshCryptoGiftDetail, login, reportAccount, tgLoggedAccountGetCryptoDetail]);
 
   const onClaim = useCallback(async () => {
     try {
@@ -246,6 +255,7 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
           id: cryptoGiftId,
           caHash: walletInfo?.extraInfo?.portkeyInfo?.caInfo?.caHash || '',
           userCaAddress: walletInfo?.address,
+          random: randomDeviceId,
         });
 
         if (result.errorCode === '10001') return latestOnRefreshCryptoGiftDetail.current(false, undefined, true);
@@ -255,15 +265,19 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
           setBtnLoading(false);
         }
       } else {
-        const { identityCode } = (await portkeyPost(PORTKEY_API.POST.GRAB, { id: cryptoGiftId })) || {};
+        const { identityCode } =
+          (await portkeyPost(PORTKEY_API.POST.GRAB, { id: cryptoGiftId, random: randomDeviceId })) || {};
 
         if (!identityCode) throw Error('Claim failed');
 
+        const referralInfo = {
+          referralCode: `${cryptoGiftId}#${identityCode}`,
+          projectCode: CRYPTO_GIFT_PROJECT_CODE,
+          random: randomDeviceId,
+        };
+
         did.setConfig({
-          referralInfo: {
-            referralCode: `${cryptoGiftId}#${identityCode}`,
-            projectCode: CRYPTO_GIFT_PROJECT_CODE,
-          },
+          referralInfo,
         });
         setItem(cryptoGiftId, identityCode);
         await sleep(500);
@@ -275,6 +289,7 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
       latestOnRefreshCryptoGiftDetail.current();
     }
   }, [
+    randomDeviceId,
     cryptoGiftId,
     isLogin,
     latestOnRefreshCryptoGiftDetail,
@@ -286,11 +301,6 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
     try {
       setLoading(true);
       await logout();
-      // setCaHolderInfo(undefined);
-
-      // removeItem(CRYPTO_GIFT_CA_HOLDER_INFO);
-      // removeItem(DEFAULT_CRYPTO_GIFT_WALLET_KEY);
-      // removeItem(CRYPTO_GIFT_CA_ADDRESS);
 
       await latestOnRefreshCryptoGiftDetail.current();
       singleMessage.success('logout success');
@@ -336,12 +346,14 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
 
     return (
       <>
-        <Avatar
-          alt={cryptoDetail?.sender?.nickname?.[0] || ''}
-          className={styles.cryptoGiftSenderImg}
-          src={cryptoDetail?.sender?.avatar || ' '}>
-          {cryptoDetail?.sender?.nickname?.[0] || ''}
-        </Avatar>
+        <VConsoleWrap>
+          <Avatar
+            alt={cryptoDetail?.sender?.nickname?.[0] || ''}
+            className={styles.cryptoGiftSenderImg}
+            src={cryptoDetail?.sender?.avatar || ' '}>
+            {cryptoDetail?.sender?.nickname?.[0] || ''}
+          </Avatar>
+        </VConsoleWrap>
 
         <div className={styles.cryptoGiftSenderTitle}>{cryptoDetail?.prompt || '-- sent you a crypto gift'}</div>
         <div className={styles.cryptoGiftSenderMemo}>{`"${cryptoDetail?.memo || 'Best wishes!'}"`}</div>
@@ -371,14 +383,13 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
     return (
       <>
         <div className={styles.cryptoGiftTopDom} />
-        <BaseImage
+        <Image
+          preview={false}
+          alt="cryptoGiftImg"
           src={src}
           className={styles.cryptoGiftImg}
-          alt="boxCannotClaimed"
-          priority
           width={343}
-          height={240}
-        />
+          height={240}></Image>
       </>
     );
   }, [cryptoDetail?.cryptoGiftPhase]);
@@ -577,11 +588,11 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
 
     return (
       <div className={styles.successSectionWrap}>
-        <BaseImage
+        <Image
+          preview={false}
           src={boxOpened}
           className={styles.cryptoGiftImg}
           alt="cryptoGiftImg"
-          priority
           width={343}
           height={240}
         />
@@ -623,7 +634,10 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
     return (
       <div className={styles.bgWrap}>
         <BaseImage src={bgPortkeyLogo} className={styles.bgPortkeyLogo} alt="bgLines" priority />
-        <BaseImage src={bgLine1} className={styles.bgLine1} alt="bgLines" priority />
+        <VConsoleWrap>
+          <BaseImage src={bgLine1} className={styles.bgLine1} alt="bgLines" priority />
+        </VConsoleWrap>
+
         <BaseImage src={bgLine2} className={styles.bgLine2} alt="bgLines" priority />
         <BaseImage src={bgLine3} className={styles.bgLine3} alt="bgLines" priority />
       </div>
@@ -665,26 +679,6 @@ const CryptoGift: React.FC<ICryptoGiftProps> = ({ cryptoGiftId }) => {
           {!initializing && !isWeChat && !isPortkeyApp && !TelegramPlatform.isTelegramPlatform() && renderDownLoadDom()}
         </div>
       </div>
-
-      {/* {!isPortkeyApp && (
-          <PortkeyProvider networkType={CurrentNetWork.networkType}>
-            <SignIn
-              defaultChainId={CurrentNetWork.defaultChain}
-              className={styles['invitee-sign-in']}
-              defaultLifeCycle={{
-                SignUp: undefined,
-              }}
-              termsOfService={termsOfService}
-              privacyPolicy={privacyPolicy}
-              uiType="Modal"
-              pin={DEFAULT_CRYPTO_GIFT_WALLET_PIN}
-              ref={signInRef}
-              onFinish={onFinish}
-              onCancel={onCancel}
-            />
-          </PortkeyProvider>
-        )} */}
-
       {/* mask */}
       {isShowMask && <OpenInBrowser isWeChat={isWeChat} />}
     </div>
