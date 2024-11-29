@@ -5,7 +5,7 @@ on:
       - 'v*.*.*'
 jobs:
   build-and-push-image:
-    runs-on: beangotown-runner
+    runs-on: portkey-runner
     permissions:
       contents: read
     steps:
@@ -15,7 +15,7 @@ jobs:
         id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ secrets.REPOSITORY_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.REPOSITORY }}/hamster-woods-interface # change this to your project frontend name
+          images: ${{ secrets.REPOSITORY_REGION }}-docker.pkg.dev/${{ secrets.PROJECT_ID }}/${{ secrets.REPOSITORY }}/portkey-crypto-gift # change this to your project frontend name
           tags: |
             type=ref,event=tag
       - name: Set up Docker Buildx
@@ -32,3 +32,4 @@ jobs:
           cache-to: type=gha,mode=max
           build-args: |
             ENVIRONMENT=mainnet
+            APP_ENV=mainnet
